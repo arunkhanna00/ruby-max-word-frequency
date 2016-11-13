@@ -37,8 +37,11 @@ class LineAnalyzer
     @content.split.each {|word| word_counter[word.downcase] += 1}
     # Iterate through the hash to find the most repeated words
     word_counter.each {|word, frequency|
-      if frequency >= @highest_wf_count
+      if frequency > @highest_wf_count
         @highest_wf_count = frequency
+        @highest_wf_words = [word]
+      # if the frequency is the same as the previous word, add that to the array as well
+      elsif frequency == @highest_wf_count
         @highest_wf_words.push(word)
       end
     }
@@ -73,4 +76,38 @@ class Solution
 
   #Implement the print_highest_word_frequency_across_lines() method to
   #* print the values of objects in highest_count_words_across_lines in the specified format
+  attr_reader :analyzers, :highest_count_across_lines, :highest_count_words_across_lines
+
+  def initialize
+    @analyzers = []
+  end
+
+  def analyze_file
+    # Iterate through the file and pass each line into the LineAnalysers class
+    File.foreach('test.txt').with_index {|line, idx| @analyzers.push(LineAnalyzer.new(line, idx))}
+  end
+
+  def calculate_line_with_highest_frequency
+    # Set default values for the attributes
+    @highest_count_across_lines = 0
+    @highest_count_words_across_lines = []
+    # Loop through the LineAnalysers objects in the analysers array
+    @analyzers.each {|lineAnalyser|
+      if lineAnalyser.highest_wf_count > @highest_count_across_lines
+        # If the line has the highest frequency store the word count and push the
+        # lineAnalyser to a separate array
+        @highest_count_across_lines = lineAnalyser.highest_wf_count
+        @highest_count_words_across_lines = [lineAnalyser]
+      elsif lineAnalyser.highest_wf_count == @highest_count_across_lines
+        @highest_count_words_across_lines.push(lineAnalyser)
+      end
+    }
+  end
+
+  def print_highest_word_frequency_across_lines
+    # Display the word frequencies
+    puts "The following words have the highest word frequency per line:"
+    @highest_count_words_across_lines.each {|lineAnalyser| puts "#{lineAnalyser.highest_wf_words} appears in line #{lineAnalyser.line_number}"}
+  end
 end
+
